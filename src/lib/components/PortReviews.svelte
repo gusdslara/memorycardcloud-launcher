@@ -1,7 +1,9 @@
 <script lang="ts">
   /**
-   * Avaliações de um port: resumo + lista simples (hardware, quem, quando, nota, FPS, stutter)
-   * e, quando o port está instalado neste aparelho, o formulário "Como rodou aqui?".
+   * Avaliações de um port, separadas por sistema (abas Windows, Linux, macOS, Android, iOS e Todos).
+   * A aba aberta é sempre a do aparelho em uso: o que importa é como roda aqui.
+   * Resumo + lista simples (hardware, quem, quando, nota, FPS, stutter) e, quando o port está instalado
+   * neste aparelho, o formulário "Como rodou aqui?".
    */
   import { onMount } from "svelte";
   import { Star, Gauge, Cpu, MessageSquare, RefreshCw, Smartphone, Award, ExternalLink } from "lucide-svelte";
@@ -31,7 +33,12 @@
   export let canReview = false;
   export let installedVersion: string | null = null;
 
+  const PLATFORMS = ["windows", "linux", "macos", "android", "ios"] as const;
+  /** Aba aberta: começa no sistema deste aparelho; "all" = todas as plataformas. */
+  let tab: string = platform;
   let page: ReviewPage | null = null;
+  // contagem de todas as plataformas (não muda com a aba); guardada da primeira resposta que a trouxer
+  let counts: Partial<Record<string, number>> = {};
   let status: "loading" | "ready" | "offline" = "loading";
   let showForm = false;
   let sending = false;
@@ -45,13 +52,37 @@
   async function load() {
     status = "loading";
     try {
-      page = await fetchReviews(API_BASE_URL, port.id);
+      page = await fetchReviews(API_BASE_URL, port.id, 30, fetch, tab === "all" ? "" : tab);
+      if (page.platforms) counts = page.platforms;
+      else if (tab === "all") counts = page.summary.platforms ?? {};
       status = "ready";
     } catch {
       status = "offline";
     }
   }
   onMount(load);
+
+  function selectTab(next: string) {
+    if (next === tab) return;
+    tab = next;
+    load();
+  }
+  // Abas: a deste aparelho primeiro, depois as que o projeto suporta ou que já têm relatos, e "Todos".
+  $: totalAll = Object.values(counts).reduce((a: number, n) => a + (n ?? 0), 0);
+  $: tabs = [
+    platform,
+    ...PLATFORMS.filter((p) => p !== platform && (port.supportedOs.includes(p) || (counts[p] ?? 0) > 0)),
+  ];
+  $: tabLabel = (p: string) => (p === "all" ? "Todos" : (PLATFORM_LABEL[p] ?? p));
+  function onTabKey(e: KeyboardEvent) {
+    const order = [...tabs, "all"];
+    const i = order.indexOf(tab);
+    const next = e.key === "ArrowRight" ? order[(i + 1) % order.length] : e.key === "ArrowLeft" ? order[(i - 1 + order.length) % order.length] : null;
+    if (!next) return;
+    e.preventDefault();
+    selectTab(next);
+    (e.currentTarget as HTMLElement).querySelector<HTMLElement>(`[data-tab="${next}"]`)?.focus();
+  }
 
   async function openForm() {
     showForm = true;
@@ -82,6 +113,7 @@
         customFetch,
       );
       showForm = false;
+      tab = platform; // a avaliação nova é deste aparelho
       await load();
     } catch (e) {
       formError = (e as Error).message;
@@ -102,6 +134,27 @@
     {/if}
   </div>
 
+  <div class="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1" role="tablist" aria-label="Avaliações por sistema" tabindex="-1" on:keydown={onTabKey}>
+    {#each [...tabs, "all"] as t (t)}
+      {@const n = t === "all" ? totalAll : (counts[t] ?? 0)}
+      <button
+        type="button"
+        role="tab"
+        data-tab={t}
+        aria-selected={tab === t}
+        tabindex={tab === t ? 0 : -1}
+        class="shrink-0 inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-pill border text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus {tab === t
+          ? 'border-action bg-action-bg text-ink'
+          : 'border-rule text-muted hover:text-ink-2 hover:border-rule-strong'}"
+        on:click={() => selectTab(t)}
+      >
+        {#if t === platform}<Smartphone size={13} aria-hidden="true" />{/if}
+        {tabLabel(t)}{#if t === platform}<span class="sr-only"> (este aparelho)</span>{/if}
+        <span class="text-[11px] {tab === t ? 'text-ink-2' : 'text-faint'}">{n}</span>
+      </button>
+    {/each}
+  </div>
+
   {#if status === "loading"}
     <Skeleton class="h-16" />
   {:else if status === "offline"}
@@ -117,10 +170,12 @@
         {#if s.avgFps}<span class="text-muted"> · ~{Math.round(s.avgFps)} FPS</span>{/if}
         {#if s.stutterYes + s.stutterNo}<span class="text-muted"> · {s.stutterYes} de {s.stutterYes + s.stutterNo} com stutter</span>{/if}
       {:else}
-        <span class="text-muted">Ninguém avaliou este projeto ainda.{canReview ? " Seja o primeiro." : ""}</span>
+        <span class="text-muted">
+          {tab === "all" ? "Ninguém avaliou este projeto ainda." : `Ninguém avaliou no ${tabLabel(tab)} ainda.`}{canReview && (tab === platform || tab === "all") ? " Seja o primeiro." : ""}
+        </span>
       {/if}
     </p>
-    {#if devicesLine(s)}
+    {#if tab === "all" && devicesLine(s)}
       <p class="text-xs text-muted flex items-start gap-1.5"><Smartphone size={14} class="shrink-0 mt-px" aria-hidden="true" />{devicesLine(s)}</p>
     {/if}
     {#if sourceCredits(s).length}

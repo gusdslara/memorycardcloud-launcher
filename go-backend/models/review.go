@@ -6,6 +6,8 @@ import "time"
 const (
 	ReviewSourceMemoryCard     = "memorycard"
 	ReviewSourceRecompLauncher = "recomplauncher"
+	// Quiver Launcher's public catalog API: reports from every system (Android/iOS included).
+	ReviewSourceQuiver = "quiver"
 )
 
 // PortReview is a player report ("avaliação") of how a catalog port runs.
@@ -14,7 +16,7 @@ const (
 type PortReview struct {
 	ID     uint   `gorm:"primaryKey" json:"id"`
 	PortID string `gorm:"not null;index;uniqueIndex:idx_review_user_port_platform;uniqueIndex:idx_review_external" json:"-"`
-	Source string `gorm:"not null;index" json:"source"` // memorycard | recomplauncher
+	Source string `gorm:"not null;index" json:"source"` // memorycard | recomplauncher | quiver
 	// ExternalKey identifies an imported report: sha1(source|rlId|when|specs|version).
 	// Nil for our own reviews. Unique per port (one report may feed several ports).
 	ExternalKey *string `gorm:"uniqueIndex:idx_review_external" json:"-"`

@@ -44,6 +44,7 @@ type ReviewSourceInfo struct {
 var PublicSources = []ReviewSourceInfo{
 	{ID: models.ReviewSourceMemoryCard, Name: "MemoryCard", URL: "https://memorycard.cloud", Kind: "reports", License: PublicDataLicense},
 	{ID: models.ReviewSourceRecompLauncher, Name: "RecompLauncher", URL: "https://recomplauncher.com", Kind: "reports", License: "relatos públicos e anônimos do RecompLauncher; mantenha o crédito"},
+	{ID: models.ReviewSourceQuiver, Name: "Quiver Launcher", URL: "https://quiverlauncher.com", Kind: "reports", License: "relatos públicos da API do catálogo do Quiver Launcher; mantenha o crédito"},
 	{ID: "awesome-decomp-games", Name: "awesome-decomp-games", URL: "https://github.com/SubmitGame/awesome-decomp-games", Kind: "curation", License: "notas de curadoria da lista; mantenha o crédito"},
 	{ID: "ports-launcher", Name: "Ports Launcher", URL: "https://github.com/Nyaldee/Ports-Launcher", Kind: "badge", License: "selo \"quality\" do catálogo; mantenha o crédito"},
 }

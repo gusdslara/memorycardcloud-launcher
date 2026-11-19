@@ -192,7 +192,7 @@ func TestReviewsListAndSummaryEndpoints(t *testing.T) {
 	// port without reviews: empty summary
 	_, body = reviewReq(t, app, "GET", "/api/reviews?port=port-c", "", nil)
 	if !strings.Contains(string(body), `"items":[]`) || !strings.Contains(string(body), `"avgRating":null`) ||
-		!strings.Contains(string(body), `"sources":{"memorycard":0,"recomplauncher":0}`) {
+		!strings.Contains(string(body), `"sources":{"memorycard":0,"quiver":0,"recomplauncher":0}`) {
 		t.Fatalf("empty port: %s", body)
 	}
 

@@ -2,6 +2,7 @@
   /**
    * Avaliações de um port no site (só leitura): resumo e lista simples com hardware, quem, quando,
    * nota, FPS e stutter. Avaliar é pelo app, que lê o hardware do aparelho em que o jogo rodou.
+   * Abas por sistema (Windows, Linux, macOS, Android, iOS e Todos); abre na do aparelho do visitante.
    */
   import type { PortItem } from "$shared/types/ports";
   import {
@@ -16,7 +17,7 @@
     VERDICT_LABEL,
     type ReviewPage,
   } from "$shared/services/reviewsApi.ts";
-  import { API_BASE } from "$lib/site";
+  import { API_BASE, detectPlatform } from "$lib/site";
   import { reviewSummaries } from "$lib/live";
   import { summaryFor, cardLine } from "$shared/services/reviewSummaries.ts";
   import Smartphone from "lucide-svelte/icons/smartphone";
@@ -28,19 +29,41 @@
   const gameTotal = $derived(options.length > 1 ? summaryFor(options, $reviewSummaries) : null);
   const external = $derived(externalRatingLines(port));
 
+  const PLATFORMS = ["windows", "linux", "macos", "android", "ios"];
+  // sistema do visitante (no navegador; no HTML pré-renderizado começa em Windows e troca ao abrir)
+  let device = $state("windows");
+  let tab = $state("windows");
+  let counts = $state<Partial<Record<string, number>>>({});
+  $effect.pre(() => {
+    const d = detectPlatform();
+    device = d;
+    tab = d;
+  });
+
   let page = $state<ReviewPage | null>(null);
   let status = $state<"loading" | "ready" | "offline">("loading");
 
   $effect(() => {
     const id = port.id;
+    const plat = tab === "all" ? "" : tab;
     status = "loading";
     page = null;
     let alive = true;
-    fetchReviews(API_BASE, id)
-      .then((p) => alive && ((page = p), (status = "ready")))
+    fetchReviews(API_BASE, id, 30, fetch, plat)
+      .then((p) => {
+        if (!alive) return;
+        page = p;
+        if (p.platforms) counts = p.platforms;
+        else if (!plat) counts = p.summary.platforms ?? {};
+        status = "ready";
+      })
       .catch(() => alive && (status = "offline"));
     return () => (alive = false);
   });
+
+  const totalAll = $derived(Object.values(counts).reduce((a: number, n) => a + (n ?? 0), 0));
+  const tabs = $derived([device, ...PLATFORMS.filter((p) => p !== device && (port.supportedOs.includes(p as never) || (counts[p] ?? 0) > 0)), "all"]);
+  const tabLabel = (p: string) => (p === "all" ? "Todos" : (PLATFORM_LABEL[p] ?? p));
 
   const s = $derived(page?.summary);
   const tone = (v: string) => (v === "runs" ? "badge-success" : v === "issues" ? "badge-warn" : "badge-danger");
@@ -49,12 +72,24 @@
 <section class="stack-sm" aria-labelledby="reviews-title">
   <h2 id="reviews-title" class="section-title">Avaliações dos jogadores</h2>
 
+  <div class="tabs" role="tablist" aria-label="Avaliações por sistema">
+    {#each tabs as t (t)}
+      <button type="button" role="tab" class="chip" aria-selected={tab === t} onclick={() => (tab = t)}>
+        {#if t === device}<Smartphone size={14} aria-hidden="true" />{/if}
+        {tabLabel(t)}{#if t === device}<span class="sr-only"> (seu aparelho)</span>{/if}
+        <span class="faint">{t === "all" ? totalAll : (counts[t] ?? 0)}</span>
+      </button>
+    {/each}
+  </div>
+
   {#if status === "loading"}
     <div class="card skeleton" aria-hidden="true"></div>
   {:else if status === "offline" || !s}
     <p class="muted">{reportsLine(port.stats?.reports)}. Não deu para carregar as avaliações agora.</p>
   {:else if !s.total}
-    <p class="muted">Ninguém avaliou {port.name} ainda. Instale pelo app e conte como rodou no seu aparelho.</p>
+    <p class="muted">
+      {tab === "all" ? `Ninguém avaliou ${port.name} ainda.` : `Ninguém avaliou ${port.name} no ${tabLabel(tab)} ainda.`} Instale pelo app e conte como rodou no seu aparelho.
+    </p>
   {:else}
     <p class="summary">
       <strong>{reportsLine(s)}</strong>
@@ -62,7 +97,7 @@
       {#if s.avgFps}<span class="muted"> · ~{Math.round(s.avgFps)} FPS</span>{/if}
       {#if s.stutterYes + s.stutterNo}<span class="muted"> · {s.stutterYes} de {s.stutterYes + s.stutterNo} com stutter</span>{/if}
     </p>
-    {#if devicesLine(s)}<p class="devices"><Smartphone size={16} aria-hidden="true" />{devicesLine(s)}</p>{/if}
+    {#if tab === "all" && devicesLine(s)}<p class="devices"><Smartphone size={16} aria-hidden="true" />{devicesLine(s)}</p>{/if}
     {#if sourceCredits(s).length}
       <p class="src faint">
         Fontes:{#each sourceCredits(s) as c, i}{i ? " · " : " "}{#if c.url}<a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a>{:else}{c.name}{/if} {c.count}{/each}
@@ -114,6 +149,20 @@
 </section>
 
 <style>
+  .tabs {
+    display: flex;
+    gap: var(--s-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabs .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    min-height: 36px;
+  }
   .skeleton {
     height: 88px;
     animation: pulse 1.2s ease-in-out infinite alternate;

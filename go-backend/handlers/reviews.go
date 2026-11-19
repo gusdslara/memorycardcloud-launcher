@@ -100,7 +100,7 @@ type ReviewSummary struct {
 
 func newReviewSummary() *ReviewSummary {
 	return &ReviewSummary{
-		Sources:   map[string]int{models.ReviewSourceMemoryCard: 0, models.ReviewSourceRecompLauncher: 0},
+		Sources:   map[string]int{models.ReviewSourceMemoryCard: 0, models.ReviewSourceRecompLauncher: 0, models.ReviewSourceQuiver: 0},
 		Platforms: map[string]int{},
 	}
 }
@@ -174,6 +174,19 @@ func buildReviewSummaries(rows []reviewAggRow) map[string]*ReviewSummary {
 
 // queryReviewSummaries aggregates visible reviews in SQL (all ports when portID is empty).
 func queryReviewSummaries(db *gorm.DB, portID string, source ...string) (map[string]*ReviewSummary, error) {
+	src := ""
+	if len(source) > 0 {
+		src = source[0]
+	}
+	return queryReviewSummariesOn(db, portID, src, "")
+}
+
+// queryReviewSummariesOn is queryReviewSummaries limited to one platform ("" = every platform).
+func queryReviewSummariesOn(db *gorm.DB, portID, src, platform string) (map[string]*ReviewSummary, error) {
+	source := []string{}
+	if src != "" {
+		source = append(source, src)
+	}
 	q := db.Model(&models.PortReview{}).
 		Select(`port_id, source, verdict, COUNT(*) AS n,
 			COALESCE(SUM(rating), 0) AS rating_sum, COUNT(rating) AS rating_n,
@@ -187,6 +200,9 @@ func queryReviewSummaries(db *gorm.DB, portID string, source ...string) (map[str
 	}
 	if len(source) > 0 && source[0] != "" {
 		q = q.Where("source = ?", source[0])
+	}
+	if platform != "" {
+		q = q.Where("platform = ?", platform)
 	}
 	var rows []reviewAggRow
 	if err := q.Scan(&rows).Error; err != nil {
@@ -202,6 +218,9 @@ func queryReviewSummaries(db *gorm.DB, portID string, source ...string) (map[str
 		}
 		if len(source) > 0 && source[0] != "" {
 			q = q.Where("source = ?", source[0])
+		}
+		if platform != "" {
+			q = q.Where("platform = ?", platform)
 		}
 		return q
 	}
@@ -256,7 +275,7 @@ func invalidateReviewSummaries() {
 // The catalog builder asks only for source=memorycard: it already counts RecompLauncher reports itself.
 func GetReviewSummaries(c *fiber.Ctx) error {
 	source := c.Query("source")
-	if source != "" && source != models.ReviewSourceMemoryCard && source != models.ReviewSourceRecompLauncher {
+	if source != "" && source != models.ReviewSourceMemoryCard && source != models.ReviewSourceRecompLauncher && source != models.ReviewSourceQuiver {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "source inválido"})
 	}
 	reviewSummaryCache.Lock()
@@ -305,20 +324,40 @@ func GetReviews(c *fiber.Ctx) error {
 		offset = 0
 	}
 
-	sums, err := queryReviewSummaries(database.DB, portID)
+	// ?platform=android: resumo e lista só desse sistema (abas da tela de avaliações). "platforms" sempre
+	// traz a contagem de todos os sistemas, para as abas mostrarem quantos relatos cada uma tem.
+	platform := strings.ToLower(strings.TrimSpace(c.Query("platform")))
+	if platform != "" && !reviewPlatforms[platform] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Plataforma inválida"})
+	}
+	all, err := queryReviewSummaries(database.DB, portID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Erro ao carregar avaliações"})
 	}
-	summary := sums[portID]
+	platforms := map[string]int{}
+	if s := all[portID]; s != nil {
+		platforms = s.Platforms
+	}
+	summary := all[portID]
+	if platform != "" {
+		sums, err := queryReviewSummariesOn(database.DB, portID, "", platform)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Erro ao carregar avaliações"})
+		}
+		summary = sums[portID]
+	}
 	if summary == nil {
 		summary = newReviewSummary()
 	}
 	items := []models.PortReview{}
-	if err := database.DB.Where("port_id = ? AND hidden = ?", portID, false).
-		Order("created_at DESC, id DESC").Limit(limit).Offset(offset).Find(&items).Error; err != nil {
+	q := database.DB.Where("port_id = ? AND hidden = ?", portID, false)
+	if platform != "" {
+		q = q.Where("platform = ?", platform)
+	}
+	if err := q.Order("created_at DESC, id DESC").Limit(limit).Offset(offset).Find(&items).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Erro ao carregar avaliações"})
 	}
-	return c.JSON(fiber.Map{"port": portID, "summary": summary, "items": items})
+	return c.JSON(fiber.Map{"port": portID, "platform": platform, "summary": summary, "platforms": platforms, "items": items})
 }
 
 // ---- create / update -------------------------------------------------------------

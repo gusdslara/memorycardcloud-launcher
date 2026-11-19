@@ -207,6 +207,38 @@ func (c *Catalog) PortIDs() []string {
 	return out
 }
 
+// PortsByRepo maps a repository ("owner/name", lower case) to the ids of every port that installs from it:
+// the port's own repository and the repositories of the builds it takes from other projects
+// (release.platformRepos, e.g. the Android build of a PC port). Used to import other catalogs' reviews.
+func (c *Catalog) PortsByRepo() map[string][]string {
+	out := map[string][]string{}
+	add := func(repo, id string) {
+		repo = strings.ToLower(strings.Trim(strings.TrimSpace(repo), "/"))
+		if repo == "" || !strings.Contains(repo, "/") {
+			return
+		}
+		for _, have := range out[repo] {
+			if have == id {
+				return
+			}
+		}
+		out[repo] = append(out[repo], id)
+	}
+	for _, it := range c.Items {
+		if it.Kind != "port" {
+			continue
+		}
+		add(it.GithubRepo, it.ID)
+		if it.Release != nil {
+			add(it.Release.Repo, it.ID)
+			for _, r := range it.Release.PlatformRepos {
+				add(r, it.ID)
+			}
+		}
+	}
+	return out
+}
+
 // PortsByExternalID maps an external id of `service` (see Item.ExternalIDs)
 // to the ids of every port referencing it. Several ports may share one id.
 func (c *Catalog) PortsByExternalID(service string) map[string][]string {

@@ -1,12 +1,13 @@
 /**
  * Avaliações dos jogadores por port (GET/POST /api/reviews no nosso servidor).
- * Mistura as do MemoryCard com os relatos públicos e anônimos importados do RecompLauncher.
+ * Mistura as do MemoryCard com os relatos públicos importados do RecompLauncher (PC) e do Quiver Launcher
+ * (todas as plataformas, inclusive Android e iOS).
  * Compartilhado entre o app e o site: quem chama passa a base da API.
  */
 import type { PortItem } from "../types/ports";
 
 export type ReviewVerdict = "runs" | "issues" | "broken";
-export type ReviewSource = "memorycard" | "recomplauncher";
+export type ReviewSource = "memorycard" | "recomplauncher" | "quiver";
 
 export interface ReviewItem {
   id: number;
@@ -42,7 +43,11 @@ export interface ReviewSummary {
 
 export interface ReviewPage {
   port: string;
+  /** Plataforma pedida ("" = todas). O resumo e a lista são só dela. */
+  platform?: string;
   summary: ReviewSummary;
+  /** Relatos por plataforma, de todas (para as abas). Servidores antigos não mandam. */
+  platforms?: Partial<Record<string, number>>;
   items: ReviewItem[];
 }
 
@@ -66,6 +71,7 @@ export const VERDICT_LABEL: Record<ReviewVerdict, string> = {
 export const SOURCE_LABEL: Record<ReviewSource, string> = {
   memorycard: "MemoryCard",
   recomplauncher: "via RecompLauncher",
+  quiver: "via Quiver Launcher",
 };
 
 /** Crédito das fontes externas (relatos, curadoria e selos), com link para a origem. */
@@ -74,7 +80,7 @@ export const SOURCE_CREDIT: Record<string, { name: string; url: string }> = {
   recomplauncher: { name: "RecompLauncher", url: "https://recomplauncher.com" },
   "awesome-decomp-games": { name: "awesome-decomp-games", url: "https://github.com/SubmitGame/awesome-decomp-games" },
   "ports-launcher": { name: "Ports Launcher", url: "https://github.com/Nyaldee/Ports-Launcher" },
-  quiver: { name: "Quiver Launcher", url: "https://github.com/tgeorgiadis/quiver-community-app-catalog" },
+  quiver: { name: "Quiver Launcher", url: "https://quiverlauncher.com" },
   recompendium: { name: "Recompendium", url: "https://recompendium.com" },
   "awesome-switch-recomp": { name: "awesome-switch-recomp", url: "https://github.com/AIshihzong/awesome-switch-recomp" },
   "awesome-pc-ports": { name: "awesome-unofficial-pc-ports", url: "https://github.com/Sebastrion/awesome-unofficial-pc-ports" },
@@ -82,11 +88,19 @@ export const SOURCE_CREDIT: Record<string, { name: string; url: string }> = {
   sp00nznet: { name: "recomp-launcher (sp00nznet)", url: "https://github.com/sp00nznet/recomp-launcher" },
 };
 
-export async function fetchReviews(apiBase: string, portId: string, limit = 30, fetchImpl: typeof fetch = fetch): Promise<ReviewPage> {
-  const res = await fetchImpl(`${apiBase}/reviews?port=${encodeURIComponent(portId)}&limit=${limit}`, {
+/** `platform` ("android", "windows"…) limita resumo e lista a essa plataforma; vazio = todas. */
+export async function fetchReviews(
+  apiBase: string,
+  portId: string,
+  limit = 30,
+  fetchImpl: typeof fetch = fetch,
+  platform = "",
+): Promise<ReviewPage> {
+  const plat = platform ? `&platform=${encodeURIComponent(platform)}` : "";
+  const res = await fetchImpl(`${apiBase}/reviews?port=${encodeURIComponent(portId)}&limit=${limit}${plat}`, {
     signal: AbortSignal.timeout(8000),
   });
-  if (res.status === 404) return { port: portId, summary: emptySummary(), items: [] };
+  if (res.status === 404) return { port: portId, platform, summary: emptySummary(), platforms: {}, items: [] };
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as ReviewPage;
 }

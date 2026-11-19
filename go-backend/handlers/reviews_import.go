@@ -53,10 +53,15 @@ var (
 type errReviewImportBlocked struct {
 	Status     int
 	RetryAfter time.Duration
+	Source     string // "" = RecompLauncher
 }
 
 func (e *errReviewImportBlocked) Error() string {
-	return fmt.Sprintf("RecompLauncher respondeu HTTP %d", e.Status)
+	src := e.Source
+	if src == "" {
+		src = "RecompLauncher"
+	}
+	return fmt.Sprintf("%s respondeu HTTP %d", src, e.Status)
 }
 
 type rlCounts struct {
@@ -104,6 +109,7 @@ func StartReviewImporter(ctx context.Context) {
 	if v := strings.TrimSpace(os.Getenv("RECOMPLAUNCHER_API")); v != "" {
 		RecompLauncherAPI = v
 	}
+	quiverAPIFromEnv()
 	go func() {
 		wait := ReviewImportFirstRun
 		for {
@@ -126,6 +132,20 @@ func StartReviewImporter(ctx context.Context) {
 			default:
 				log.Printf("[reviews] RecompLauncher: %d apps consultados, %d sem mudança, %d avaliações novas",
 					res.Fetched, res.Skipped, res.Inserted)
+			}
+			// Quiver Launcher (todas as plataformas, inclusive Android/iOS): fonte independente
+			qres, qerr := ImportQuiverReviews(ctx, database.DB)
+			switch {
+			case errors.As(qerr, &blocked):
+				log.Printf("[reviews] Quiver interrompido: %v (Retry-After %s)", qerr, blocked.RetryAfter)
+				if blocked.RetryAfter > wait {
+					wait = blocked.RetryAfter
+				}
+			case qerr != nil:
+				log.Printf("[reviews] Quiver falhou: %v", qerr)
+			default:
+				log.Printf("[reviews] Quiver: %d apps consultados, %d sem mudança, %d avaliações novas",
+					qres.Fetched, qres.Skipped, qres.Inserted)
 			}
 		}
 	}()
