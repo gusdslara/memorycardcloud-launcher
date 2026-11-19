@@ -1,0 +1,13 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Allows the app to install APKs it downloaded, ask for the install permission, and open/uninstall the installed games (Android only; no-ops elsewhere)."
+permissions = [
+  "allow-can-install",
+  "allow-open-install-settings",
+  "allow-package-info",
+  "allow-install",
+  "allow-is-installed",
+  "allow-launch",
+  "allow-uninstall",
+]

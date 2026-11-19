@@ -1,0 +1,44 @@
+MEMORYCARD.CLOUD - TERMS OF SERVICE (EULA)
+
+1. Introduction
+Welcome to MemoryCard.cloud. By accessing or using our website and services, you agree to be bound by these Terms of Service and our Privacy Policy.
+
+2. LGPD Compliance (Brazil)
+In compliance with the Lei Geral de Proteção de Dados (LGPD - Law No. 13.709/2018), we are committed to protecting your personal data. We act as a Controller of your personal data.
+
+2.1 Data Collection
+We collect personal data such as your name, email address, CPF/CNPJ, and mobile phone number to provide our services, manage your account, and billing purposes.
+
+2.2 Purpose of Processing
+Your data is processed for the following purposes:
+- Account creation and authentication.
+- Processing payments and managing subscriptions.
+- Providing cloud backup services for your game saves (Paid Plans only).
+- Communicating with you regarding your account and service updates.
+- Legal compliance and fraud prevention.
+
+2.3 User Rights
+Under LGPD, you have the right to:
+- Confirm the existence of data processing.
+- Access your data.
+- Correct incomplete, inaccurate, or outdated data.
+- Request anonymization, blocking, or deletion of unnecessary or excessive data.
+- Revoke your consent at any time.
+
+3. Use of Service
+You agree to use MemoryCard.cloud only for lawful purposes. You are responsible for all activities that occur under your account.
+
+3.1 Content Liability Disclaimer
+MemoryCard.cloud provides cloud storage infrastructure for paid subscription tiers. We do not inspect, verify, or take responsibility for the content you upload (including game saves or source files). You explicitly warrant that you own or have the necessary rights to any content you upload.
+
+3.2 Service Guarantee (Paid Plans)
+We guarantee the availability of cloud backup services for current, active paid subscriptions. We are not liable for data loss for free tier users or lapsed subscriptions.
+
+3.3 Data Retention Policy
+If your subscription expires or is cancelled, we will retain your cloud saves until the end of the next billing cycle (grace period). After this period, we reserve the right to permanently delete data associated with inactive paid plans to free up manufacturing resources.
+
+4. Account Termination
+We reserve the right to suspend or terminate your account if you violate these Terms or engage in illegal activities.
+
+5. Contact Us
+If you have any questions about these Terms or our Privacy Policy, please contact us at support@memorycard.cloud.

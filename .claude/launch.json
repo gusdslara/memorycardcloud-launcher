@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "memorycard-landing-localapi",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_API_URL=http://127.0.0.1:8077/api&& npm --prefix landing run dev"],
+      "port": 5174
+    },
+    {
+      "name": "memorycard-app-web",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_API_URL=http://127.0.0.1:8077/api&& npm run dev"],
+      "port": 1420
+    }
+  ]
+}

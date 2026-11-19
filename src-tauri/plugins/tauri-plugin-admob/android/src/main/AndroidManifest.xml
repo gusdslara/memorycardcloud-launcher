@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- AdMob App ID. The app module must define the manifest placeholder "admobAppId"
+             (src-tauri/gen/android/app/build.gradle.kts: ADMOB_APP_ID, default = Google's test App ID).
+             Without it the SDK crashes the app at startup, so the build fails instead. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+        <!-- Initialize the SDK off the main thread, only when the app asks (after consent) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+            android:value="true" />
+    </application>
+</manifest>

@@ -1,0 +1,61 @@
+.DS_Store
+node_modules
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Rust build artifacts
+src-tauri/target
+src-tauri/gen
+
+# Recomps downloaded files
+recomps/
+
+# Go backend
+go-backend/go-backend.exe
+go-backend/uploads/*
+!go-backend/uploads/.gitkeep
+go-backend/data/*
+!go-backend/data/.gitkeep
+
+# Updater signing key (private!). Back it up outside the repo.
+src-tauri/.updater/*.key
+
+# Deploy na VPS (vps-deploy.json): .env de produção, segredos e estado do servidor
+deploy/vps.env
+.deploy-secrets/
+.deploy-cache/
+.deploy-logs/
+# Keystore de release do Android (faça backup fora do repo)
+src-tauri/.android/
+
+# Cache do gerador de catálogo (scripts/catalog/build-ports.mjs)
+scripts/catalog/cache/
+
+# --- Exclusões adicionais (import memorycardcloud-launcher) ---
+# Bancos locais, temporários e dados do backend
+*.db
+go-backend/tmp/
+go-backend/filebrowser_data/
+go-backend/filebrowser.db
+# Binários / pacotes gerados
+*.exe
+*.msi
+*.apk
+*.aab
+# Saídas de build
+/landing/build/
+**/.svelte-kit/
+src-tauri/plugins/*/android/build/
+src-tauri/plugins/*/android/.tauri/
+# Ferramentas locais
+.claude-tmp/
+.claude/settings.local.json
+# Builds web hospedados em /play/ (dados de jogo protegidos: não versionar)
+landing/static/play/*
+!landing/static/play/_shell/

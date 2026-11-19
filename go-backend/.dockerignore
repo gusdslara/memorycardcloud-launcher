@@ -1,0 +1,9 @@
+*.exe
+tmp/
+.git
+.env
+filebrowser.db
+filebrowser_data/
+data/
+roms-cache/
+uploads/

@@ -1,0 +1,94 @@
+/* ==========================================================================
+   MemoryCard.cloud: shared design tokens (App + Landing)
+   Single source of truth for surfaces, typography, spacing, and shapes.
+   ========================================================================== */
+
+:root {
+  /* ---- color: surfaces (the app's navy) ---- */
+  --night: #0e1330;
+  --panel: #161d3d;
+  --panel-2: #1b2349;
+  --panel-3: #222b55;
+  --rule: #27305a;
+  --rule-strong: #3a4580;
+  --rule-2: var(--rule-strong);
+
+  /* ---- color: text ---- */
+  --ink: #eef0fa;
+  --ink-2: #c8cde6; /* secondary text, links on dark */
+  --muted: #9098b8;
+  --faint: #6b74a0;
+
+  /* ---- color: the four memory cards of the logo ---- */
+  --card-red: #b3263c;
+  --card-green: #3d8a4b;
+  --card-blue: #3361d6;
+  --card-navy: #222a4d;
+
+  /* ---- color: semantic ---- */
+  --action: #4170f0;
+  --action-hover: #5a83f5;
+  --action-bg: rgb(65 112 240 / 0.14);
+  --action-border: rgb(65 112 240 / 0.4);
+  --success: #3fd08f;
+  --success-ink: #b9f2d6;
+  --success-bg: rgb(63 208 143 / 0.1);
+  --warn: #f3b44a;
+  --warn-ink: #f3cf8a;
+  --warn-bg: rgb(243 180 74 / 0.1);
+  --danger: #e5546a;
+  --danger-hover: #f06a7e;
+  --danger-ink: #ffc2cb;
+  --danger-bg: rgb(229 84 106 / 0.12);
+  --focus: #9db4ff;
+  --official: var(--success);
+
+  /* ---- type ---- */
+  --display: "Chakra Petch", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --sans: var(--body);
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-base: 16px;
+  --fs-lg: 18px;
+  --fs-h3: 17px;
+  --fs-h2: clamp(22px, 2.6vw, 30px);
+  --fs-h1: clamp(26px, 5vw, 44px);
+  --fs-hero: clamp(32px, 5.4vw, 56px);
+
+  /* ---- space (4px grid) ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-14: 56px;
+  --s-18: 72px;
+
+  /* ---- shape ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --radius: 14px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  /* ---- layout ---- */
+  --wrap: 1180px;
+  --gutter: 16px;
+  --header-h: 64px;
+  --side-w: 380px;
+
+  color-scheme: dark;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+}

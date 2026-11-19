@@ -1,0 +1,23 @@
+{
+  "name": "memorycard-landing",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "description": "Site público do MemoryCard.cloud: baixar o app e o catálogo de ports, recomps e emuladores (mesmas listas do app).",
+  "scripts": {
+    "dev": "vite dev --port 5174",
+    "build": "node scripts/build.mjs",
+    "preview": "vite preview --port 5175",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "verify": "node scripts/verify-build.mjs"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.6",
+    "@sveltejs/kit": "^2.49.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.45.2",
+    "svelte-check": "^4.0.0",
+    "typescript": "~5.6.2",
+    "vite": "^6.4.1"
+  }
+}

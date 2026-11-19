@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: memorycard-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./data:/data  # Shared data directory
+    env_file:
+      - ../.env
+    environment:
+      # SQLite Configuration
+      DB_NAME: memorycard.db
+      DATA_DIR: /data
+      # JWT Secret (should be in .env but default here for dev example)
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_key_change_me}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    restart: always
+
+  filebrowser:
+    image: filebrowser/filebrowser:v2
+    container_name: memorycard-filebrowser
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/srv       # Serve the shared data directory
+      - ./filebrowser_data:/filebrowser_data # Persistent Data Directory (DB inside)
+      - ./filebrowser.json:/.filebrowser.json # Configuration
+    restart: always
+    environment:
+      FB_DATABASE: /filebrowser_data/database.db
+      FB_ROOT: /srv
+      FB_LOG: stdout
+      # Default user: admin/admin
+

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Installs the game APKs the app downloads (the user still confirms each one in the system dialog).
+         Google Play only allows this for apps whose core purpose is installing apps (stores/launchers). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Android 12+: updating a game THIS app installed can skip the confirmation (setRequireUserAction) -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+    <!-- "Desinstalar" button: opens the system uninstall confirmation for a game we installed -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <!-- Android 11+ package visibility: to know whether an installed game is there and to open it,
+         without asking for QUERY_ALL_PACKAGES. Games always have a launcher activity. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+</manifest>

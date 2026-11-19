@@ -1,0 +1,17 @@
+{
+    "bundle": {
+        "licenseFile": "license_pt.txt",
+        "windows": {
+            "nsis": {
+                "languages": [
+                    "PortugueseBR"
+                ]
+            },
+            "wix": {
+                "language": [
+                    "pt-BR"
+                ]
+            }
+        }
+    }
+}

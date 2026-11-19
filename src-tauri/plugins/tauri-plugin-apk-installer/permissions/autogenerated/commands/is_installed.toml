@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-is-installed"
+description = "Enables the is_installed command without any pre-configured scope."
+commands.allow = ["is_installed"]
+
+[[permission]]
+identifier = "deny-is-installed"
+description = "Denies the is_installed command without any pre-configured scope."
+commands.deny = ["is_installed"]

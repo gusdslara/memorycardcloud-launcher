@@ -1,0 +1,75 @@
+# Stack de produção na VPS (subida pelo vps-deployer, ver vps-deploy.json):
+#
+#   api          API Go + landing page (memorycard.cloud e api.memorycard.cloud via Caddy)
+#   app-builder  (perfil "apps") compila o app para Windows, Linux e Android e publica
+#                as builds no próprio servidor (/baixar + atualizador automático)
+#
+# Dados persistentes ficam FORA da pasta do projeto, em MEMORYCARD_HOME (padrão /opt/memorycard):
+# um novo deploy nunca apaga banco, saves, builds ou a cópia de ROMs.
+name: memorycard
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.server
+    image: memorycard-server:latest
+    container_name: memorycard-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8000"
+      MODE: production
+      DATA_DIR: /data
+      DB_NAME: ${DB_NAME:-memorycard.db}
+      LANDING_DIR: /app/landing
+      APP_RELEASES_DIR: /data/app-releases
+      NATIVE_GAMES_DIR: /data/native-games
+      ROMS_CACHE_DIR: /roms-cache
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://memorycard.cloud}
+      SITE_URL: ${SITE_URL:-https://memorycard.cloud}
+    volumes:
+      - ${MEMORYCARD_HOME:-/opt/memorycard}/data:/data
+      - ${MEMORYCARD_HOME:-/opt/memorycard}/uploads:/app/uploads
+      - ${ROMS_SSD_PATH:-/opt/memorycard/roms-cache}:/roms-cache
+    networks:
+      - default
+      - caddy-net
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  app-builder:
+    profiles: ["apps"]
+    build:
+      context: deploy
+      dockerfile: Dockerfile.app-builder
+    image: memorycard-app-builder:latest
+    # Mesmo usuário do dono da pasta na VPS: os arquivos gerados continuam editáveis pelo deploy
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: ["bash", "deploy/build-apps.sh"]
+    depends_on:
+      - api
+    environment:
+      # Publica direto na API (rede interna do compose)
+      MEMORYCARD_API: http://api:8000/api
+      MEMORYCARD_ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      MEMORYCARD_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # Plataformas compiladas nesta VPS (macos e ios exigem um Mac: rode release-app.mjs num Mac)
+      APP_PLATFORMS: ${APP_PLATFORMS:-linux,windows,android}
+      ANDROID_TARGETS: ${ANDROID_TARGETS:-aarch64 armv7 x86_64}
+      APP_RELEASE_NOTES: ${APP_RELEASE_NOTES:-}
+      FORCE_APP_BUILD: ${FORCE_APP_BUILD:-}
+      # Chave do atualizador (enviada pelo deploy para .deploy-secrets) e keystore do Android
+      TAURI_SIGNING_PRIVATE_KEY: ${TAURI_SIGNING_PRIVATE_KEY:-/workspace/.deploy-secrets/memorycard-updater.key}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}
+      ANDROID_SECRETS_DIR: /workspace/.deploy-secrets/android
+    volumes:
+      - ./:/workspace
+      - ./.deploy-cache:/cache
+    stop_grace_period: 30s
+
+networks:
+  caddy-net:
+    external: true

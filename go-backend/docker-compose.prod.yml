@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  api:
+    # Use image from GitHub Container Registry (Replace OWNER/REPO with actual lowercase)
+    # The workflow will set the image name dynamically or we can hardcode it if known.
+    # For flexibility, we can expect the image tag or name to be passed, but usually docker-compose 
+    # in CI pulls a specific tag. Here we define the service structure.
+    # We'll use the environment variable for the image name to allow versioning.
+    image: ${API_IMAGE:-ghcr.io/${GITHUB_REPOSITORY}/go-backend:latest}
+    container_name: memorycard-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/data  # Persistent DB
+      # Private ROM library copy: point ROMS_SSD_PATH at a folder on the SSD
+      - ${ROMS_SSD_PATH:-./roms-cache}:/roms-cache
+    environment:
+      - DB_NAME=memorycard.db
+      - DATA_DIR=/data
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - MODE=production
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-https://memorycard.cloud}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - STEAMGRIDDB_API_KEY=${STEAMGRIDDB_API_KEY}
+      - CATALOG_ADMIN_TOKEN=${CATALOG_ADMIN_TOKEN}
+      - CATALOG_MIRROR=${CATALOG_MIRROR:-true}
+      - CATALOG_MIRROR_MAX_MB=${CATALOG_MIRROR_MAX_MB:-1024}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+      - SITE_URL=${SITE_URL:-https://memorycard.cloud}
+      - ROMS_CACHE_DIR=/roms-cache
+      # Builds of the app (/baixar + auto-updater) and native games live on the persistent volume
+      - APP_RELEASES_DIR=/data/app-releases
+      - NATIVE_GAMES_DIR=/data/native-games
+      - ROMS_CACHE_MAX_GB=${ROMS_CACHE_MAX_GB}
+    restart: always
+
+  filebrowser:
+    image: filebrowser/filebrowser:v2
+    container_name: memorycard-filebrowser
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/srv       # Serve the shared data directory
+      - ./filebrowser_data:/filebrowser_data # Persistent Data (DB)
+      - ./filebrowser.json:/.filebrowser.json # Configuration
+    environment:
+      - FB_DATABASE=/filebrowser_data/database.db
+      - FB_ROOT=/srv
+      - FB_LOG=stdout
+      # If you want to force specific user/pass for filebrowser, you'd need to configure it via DB logic
+      # or use no-auth. For now, we assume persistent DB handles users or default admin/admin.
+    restart: always

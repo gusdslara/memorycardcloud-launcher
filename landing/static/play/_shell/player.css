@@ -1,0 +1,1311 @@
+/* ==========================================================================
+   MemoryCard.cloud — Web Player Shell (SM64 & GoW CoO)
+   Shared stylesheet using site design tokens.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  /* ---- color: surfaces (the app's navy) ---- */
+  --night: #0e1330;
+  --panel: #161d3d;
+  --panel-2: #1b2349;
+  --panel-3: #222b55;
+  --rule: #27305a;
+  --rule-strong: #3a4580;
+  --rule-2: var(--rule-strong);
+
+  /* ---- color: text ---- */
+  --ink: #eef0fa;
+  --ink-2: #c8cde6;
+  --muted: #9098b8;
+  --faint: #6b74a0;
+
+  /* ---- color: the four memory cards of the logo ---- */
+  --card-red: #b3263c;
+  --card-green: #3d8a4b;
+  --card-blue: #3361d6;
+  --card-navy: #222a4d;
+
+  /* ---- color: semantic ---- */
+  --action: #4170f0;
+  --action-hover: #5a83f5;
+  --action-bg: rgb(65 112 240 / 0.14);
+  --action-border: rgb(65 112 240 / 0.4);
+  --success: #3fd08f;
+  --success-ink: #b9f2d6;
+  --success-bg: rgb(63 208 143 / 0.1);
+  --warn: #f3b44a;
+  --warn-ink: #f3cf8a;
+  --warn-bg: rgb(243 180 74 / 0.1);
+  --danger: #e5546a;
+  --danger-hover: #f06a7e;
+  --danger-ink: #ffc2cb;
+  --danger-bg: rgb(229 84 106 / 0.12);
+  --focus: #9db4ff;
+
+  /* ---- type ---- */
+  --display: "Chakra Petch", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --sans: var(--body);
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-base: 16px;
+  --fs-lg: 18px;
+  --fs-h3: 17px;
+
+  /* ---- space (4px grid) ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  /* ---- shape ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --radius: 14px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  /* ---- player runtime vars ---- */
+  --topbar-h: 52px;
+  --game-aspect: 1.333333;
+  --ctl-opacity: 0.75;
+  --ctl-scale: 1;
+  --ctl-glass: rgb(14 19 48 / 0.55);
+
+  color-scheme: dark;
+}
+
+html[data-ctl-size="sm"] {
+  --ctl-scale: 0.88;
+}
+html[data-ctl-size="md"] {
+  --ctl-scale: 1;
+}
+html[data-ctl-size="lg"] {
+  --ctl-scale: 1.14;
+}
+
+/* ---- base reset ---------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--night);
+  color: var(--ink);
+  font: 400 var(--fs-md) / 1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---- shell layout & display modes ---------------------------------------- */
+
+.mcd-shell {
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  overflow: hidden;
+}
+
+.mcd-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.mcd-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  outline: none;
+  touch-action: none;
+}
+
+/* Mode 1: Gameboy (top screen + bottom control deck, no overlap) */
+html[data-mode="gameboy"] .mcd-shell {
+  padding-top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+}
+
+html[data-mode="gameboy"] .mcd-stage {
+  width: 100vw;
+  aspect-ratio: var(--game-aspect);
+  max-height: 45dvh;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--rule);
+  margin: 0 auto;
+}
+
+/* Mode 2 & 3: Fullscreen & Clean (100dvw x 100dvh canvas) */
+html[data-mode="fullscreen"] .mcd-stage,
+html[data-mode="clean"] .mcd-stage {
+  position: fixed;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  z-index: 1;
+}
+
+/* ---- topbar -------------------------------------------------------------- */
+
+.mcd-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) calc(var(--s-3) + env(safe-area-inset-right, 0px)) 0
+    calc(var(--s-3) + env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  background: rgb(14 19 48 / 0.84);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+/* Auto-hide topbar in fullscreen mode after 3s idle */
+html[data-mode="fullscreen"] .mcd-topbar.idle {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+/* Hide topbar completely in clean mode */
+html[data-mode="clean"] .mcd-topbar {
+  display: none !important;
+}
+
+.mcd-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.mcd-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.mcd-brand-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.mcd-game-title {
+  font: 700 15px / 1.15 var(--display);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcd-console-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  font: 600 11px / 1 var(--body);
+  color: var(--ink-2);
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 520px) {
+  .mcd-console-badge {
+    display: none;
+  }
+}
+
+.mcd-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mcd-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule);
+  background: rgb(22 29 61 / 0.75);
+  color: var(--ink-2);
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.mcd-icon-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.mcd-icon-btn[aria-pressed="true"],
+.mcd-icon-btn.active {
+  background: var(--action-bg);
+  border-color: var(--action);
+  color: var(--ink);
+}
+
+.mcd-icon-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* Clean mode floating trigger button */
+.mcd-clean-fab {
+  position: fixed;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  right: calc(10px + env(safe-area-inset-right, 0px));
+  z-index: 35;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  background: rgb(14 19 48 / 0.72);
+  color: var(--ink);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.35;
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease;
+}
+
+.mcd-clean-fab:hover,
+.mcd-clean-fab:focus-visible {
+  opacity: 1;
+  background: var(--panel-2);
+}
+
+.mcd-clean-fab svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-mode="clean"] .mcd-clean-fab {
+  display: inline-flex;
+}
+
+/* ---- performance overlay chip (§3.5) ------------------------------------- */
+
+.mcd-perf {
+  position: fixed;
+  top: calc(var(--topbar-h) + 10px + env(safe-area-inset-top, 0px));
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  z-index: 28;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgb(14 19 48 / 0.78);
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  font: 500 11px / 1.35 var(--mono);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-mode="clean"] .mcd-perf {
+  top: calc(10px + env(safe-area-inset-top, 0px));
+}
+
+html[data-perf="off"] .mcd-perf {
+  display: none !important;
+}
+
+/* ---- toast notification -------------------------------------------------- */
+
+.mcd-toast {
+  position: fixed;
+  top: calc(var(--topbar-h) + 12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  z-index: 65;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+  font: 500 var(--fs-sm) / 1.4 var(--body);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mcd-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- loading overlay (§3.5) ---------------------------------------------- */
+
+.mcd-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5);
+  background: rgb(14 19 48 / 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.28s ease;
+}
+
+.mcd-loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mcd-loading-card {
+  width: min(420px, 100%);
+  padding: var(--s-6);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s-3);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.45);
+}
+
+.mcd-loading-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.mcd-loading-title {
+  font: 700 20px / 1.15 var(--display);
+  color: var(--ink);
+  margin: 0;
+}
+
+.mcd-loading-status {
+  font: 500 var(--fs-sm) / 1.4 var(--body);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcd-loading-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--night);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+  position: relative;
+}
+
+.mcd-loading-fill {
+  height: 100%;
+  width: 12%;
+  border-radius: var(--r-pill);
+  background: var(--action);
+  transition: width 0.2s ease;
+}
+
+.mcd-loading-bar.indeterminate .mcd-loading-fill {
+  width: 38%;
+  animation: mcd-indeterminate 1.25s infinite ease-in-out;
+}
+
+@keyframes mcd-indeterminate {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  border-left: 4px solid currentColor;
+}
+
+.notice-danger {
+  color: var(--danger-ink);
+  background: var(--danger-bg);
+}
+
+/* ---- on-screen touch controls (§3.4 & §3.7) ------------------------------ */
+
+/* Regra CSS única e final para ocultar controles (§3.4) */
+html[data-controls="off"] .mcd-controls {
+  display: none !important;
+}
+
+.mcd-controls {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  z-index: 20;
+}
+
+/* Gameboy mode controls: bottom deck below game screen */
+html[data-mode="gameboy"] .mcd-controls {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--s-2) calc(var(--s-3) + env(safe-area-inset-right, 0px))
+    calc(var(--s-2) + env(safe-area-inset-bottom, 0px))
+    calc(var(--s-3) + env(safe-area-inset-left, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "left right"
+    "mid mid";
+  gap: var(--s-2);
+  align-items: stretch;
+  background: var(--night);
+}
+
+html[data-mode="gameboy"] .mcd-cluster-left {
+  grid-area: left;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+
+html[data-mode="gameboy"] .mcd-cluster-right {
+  grid-area: right;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--s-2);
+}
+
+html[data-mode="gameboy"] .mcd-cluster-mid {
+  grid-area: mid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--s-3);
+  padding-top: 2px;
+}
+
+/* Fullscreen & Clean mode controls: translucent overlays on sides */
+html[data-mode="fullscreen"] .mcd-controls,
+html[data-mode="clean"] .mcd-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--ctl-opacity, 0.75);
+}
+
+html[data-mode="fullscreen"] .mcd-cluster-left,
+html[data-mode="clean"] .mcd-cluster-left {
+  position: fixed;
+  top: calc(var(--topbar-h) + 8px + env(safe-area-inset-top, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: auto;
+}
+
+html[data-mode="fullscreen"] .mcd-cluster-right,
+html[data-mode="clean"] .mcd-cluster-right {
+  position: fixed;
+  top: calc(var(--topbar-h) + 8px + env(safe-area-inset-top, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+
+html[data-mode="fullscreen"] .mcd-cluster-mid,
+html[data-mode="clean"] .mcd-cluster-mid {
+  position: fixed;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  pointer-events: auto;
+}
+
+/* Base touch button primitive */
+.ctl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--ctl-glass);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+  font: 700 14px / 1 var(--display);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  transition:
+    transform 0.06s ease,
+    background 0.08s ease,
+    border-color 0.08s ease;
+}
+
+/* Shoulders (L / R / Z) */
+.mcd-shoulders {
+  display: flex;
+  gap: var(--s-2);
+  width: 100%;
+  max-width: 100%;
+}
+
+.mcd-cluster-right .mcd-shoulders {
+  justify-content: flex-end;
+}
+
+.ctl-shoulder {
+  flex: 0 1 calc(104px * var(--ctl-scale));
+  width: calc(104px * var(--ctl-scale));
+  min-width: 56px;
+  height: calc(44px * var(--ctl-scale));
+  min-height: 44px;
+  border-radius: var(--r-md) var(--r-md) 8px 8px;
+  font-size: 14px;
+}
+
+.ctl-shoulder.ctl-z {
+  background: color-mix(in srgb, var(--panel-3) 72%, rgb(14 19 48 / 0.65));
+  border-color: var(--focus);
+}
+
+/* Center Start / Select pills */
+.ctl-pill {
+  padding: 0 18px;
+  min-width: 76px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ctl-pill.ctl-start-n64 {
+  background: color-mix(in srgb, var(--card-red) 42%, rgb(14 19 48 / 0.72));
+  border-color: color-mix(in srgb, var(--card-red) 72%, var(--rule-strong));
+}
+
+/* D-Pad */
+.mcd-dpad {
+  position: relative;
+  width: calc(114px * var(--ctl-scale));
+  height: calc(114px * var(--ctl-scale));
+  min-width: 96px;
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  touch-action: none;
+}
+
+.mcd-dpad.mcd-dpad-compact {
+  width: calc(99px * var(--ctl-scale));
+  height: calc(99px * var(--ctl-scale));
+}
+
+.mcd-dpad span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ctl-glass);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.mcd-dpad .up {
+  grid-area: 1 / 2;
+  border-radius: 9px 9px 0 0;
+}
+.mcd-dpad .down {
+  grid-area: 3 / 2;
+  border-radius: 0 0 9px 9px;
+}
+.mcd-dpad .left {
+  grid-area: 2 / 1;
+  border-radius: 9px 0 0 9px;
+}
+.mcd-dpad .right {
+  grid-area: 2 / 3;
+  border-radius: 0 9px 9px 0;
+}
+.mcd-dpad .hub {
+  grid-area: 2 / 2;
+  border-radius: 0;
+  border-color: transparent;
+  background: rgb(14 19 48 / 0.45);
+}
+
+/* Virtual Analog Stick */
+.mcd-stick {
+  position: relative;
+  width: calc(116px * var(--ctl-scale));
+  height: calc(116px * var(--ctl-scale));
+  min-width: 96px;
+  min-height: 96px;
+  border-radius: 50%;
+  background: var(--ctl-glass);
+  border: 1px solid var(--rule-strong);
+  touch-action: none;
+}
+
+.mcd-stick.on {
+  border-color: var(--action);
+}
+
+.mcd-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(50px * var(--ctl-scale));
+  height: calc(50px * var(--ctl-scale));
+  margin-left: calc(-25px * var(--ctl-scale));
+  margin-top: calc(-25px * var(--ctl-scale));
+  border-radius: 50%;
+  background: rgb(65 112 240 / 0.38);
+  border: 1px solid var(--focus);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+/* PSP 4-button diamond */
+.mcd-face-psp {
+  display: grid;
+  grid-template-columns: repeat(3, calc(48px * var(--ctl-scale)));
+  grid-template-rows: repeat(3, calc(48px * var(--ctl-scale)));
+  gap: 2px;
+}
+
+.mcd-face-psp .ctl {
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.mcd-face-psp .tri {
+  grid-area: 1 / 2;
+  background: color-mix(in srgb, var(--card-green) 34%, rgb(14 19 48 / 0.72));
+  border-color: color-mix(in srgb, var(--card-green) 70%, var(--rule-strong));
+}
+.mcd-face-psp .sq {
+  grid-area: 2 / 1;
+  background: color-mix(in srgb, var(--card-navy) 75%, rgb(14 19 48 / 0.72));
+  border-color: var(--rule-strong);
+}
+.mcd-face-psp .ci {
+  grid-area: 2 / 3;
+  background: color-mix(in srgb, var(--card-red) 34%, rgb(14 19 48 / 0.72));
+  border-color: color-mix(in srgb, var(--card-red) 70%, var(--rule-strong));
+}
+.mcd-face-psp .cr {
+  grid-area: 3 / 2;
+  background: color-mix(in srgb, var(--card-blue) 38%, rgb(14 19 48 / 0.72));
+  border-color: color-mix(in srgb, var(--card-blue) 74%, var(--rule-strong));
+}
+
+/* N64 C-buttons + A/B layout */
+.mcd-cpad {
+  display: grid;
+  grid-template-columns: repeat(3, calc(44px * var(--ctl-scale)));
+  grid-template-rows: repeat(3, calc(40px * var(--ctl-scale)));
+  gap: 2px;
+}
+
+.mcd-cpad .ctl {
+  border-radius: 50%;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--warn) 24%, rgb(14 19 48 / 0.72));
+  border-color: color-mix(in srgb, var(--warn) 58%, var(--rule-strong));
+  color: var(--warn-ink);
+}
+
+.mcd-cpad .cup {
+  grid-area: 1 / 2;
+}
+.mcd-cpad .cleft {
+  grid-area: 2 / 1;
+}
+.mcd-cpad .cright {
+  grid-area: 2 / 3;
+}
+.mcd-cpad .cdown {
+  grid-area: 3 / 2;
+}
+
+.mcd-ab-n64 {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-top: var(--s-1);
+}
+
+.mcd-ab-n64 .ctl-b {
+  width: calc(56px * var(--ctl-scale));
+  height: calc(56px * var(--ctl-scale));
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  font-size: 18px;
+  transform: translateY(-10px);
+  background: color-mix(in srgb, var(--card-green) 42%, rgb(14 19 48 / 0.75));
+  border-color: color-mix(in srgb, var(--card-green) 78%, var(--rule-strong));
+}
+
+.mcd-ab-n64 .ctl-a {
+  width: calc(60px * var(--ctl-scale));
+  height: calc(60px * var(--ctl-scale));
+  min-width: 50px;
+  min-height: 50px;
+  border-radius: 50%;
+  font-size: 19px;
+  transform: translateY(4px);
+  background: color-mix(in srgb, var(--card-blue) 45%, rgb(14 19 48 / 0.75));
+  border-color: color-mix(in srgb, var(--card-blue) 82%, var(--rule-strong));
+}
+
+/* Pressed state (.on) overrides */
+.ctl.on,
+.mcd-dpad span.on {
+  background: var(--action) !important;
+  border-color: var(--focus) !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgb(65 112 240 / 0.5);
+}
+
+/* ---- settings menu (side sheet desktop / bottom sheet mobile) ------------ */
+
+.mcd-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgb(7 10 26 / 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.mcd-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mcd-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  width: min(390px, 100vw);
+  background: var(--panel);
+  border-left: 1px solid var(--rule-strong);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(102%);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: -12px 0 40px rgb(0 0 0 / 0.5);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.mcd-menu.open {
+  transform: translateX(0);
+}
+
+@media (max-width: 639px) {
+  .mcd-menu {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-height: 86dvh;
+    border-left: 0;
+    border-top: 1px solid var(--rule-strong);
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    transform: translateY(102%);
+  }
+  .mcd-menu.open {
+    transform: translateY(0);
+  }
+}
+
+.mcd-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+
+.mcd-menu-title {
+  font: 700 17px / 1.2 var(--display);
+  color: var(--ink);
+  margin: 0;
+}
+
+.mcd-menu-body {
+  padding: var(--s-4) var(--s-5) calc(var(--s-6) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.mcd-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.mcd-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.mcd-label {
+  font: 600 var(--fs-sm) / 1.3 var(--body);
+  color: var(--ink);
+}
+
+.mcd-sublabel {
+  font: 400 var(--fs-xs) / 1.35 var(--body);
+  color: var(--muted);
+}
+
+.mcd-segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--night);
+  border: 1px solid var(--rule);
+}
+
+.mcd-seg-btn {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 var(--fs-xs) / 1 var(--body);
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
+}
+
+.mcd-seg-btn:hover {
+  background: var(--panel-2);
+}
+
+.mcd-seg-btn[aria-pressed="true"] {
+  background: var(--action);
+  color: #fff;
+}
+
+.mcd-toggle-btn {
+  min-width: 92px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  background: var(--night);
+  color: var(--ink-2);
+  font: 600 var(--fs-xs) / 1 var(--body);
+  cursor: pointer;
+}
+
+.mcd-toggle-btn[aria-pressed="true"] {
+  background: var(--action-bg);
+  border-color: var(--action);
+  color: var(--ink);
+}
+
+.mcd-range {
+  width: 100%;
+  accent-color: var(--action);
+  cursor: pointer;
+}
+
+.mcd-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font: 600 var(--fs-sm) / 1 var(--body);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--action);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--action-hover);
+}
+
+.btn-quiet {
+  background: var(--panel-2);
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+.btn-quiet:hover {
+  background: var(--panel-3);
+}
+
+.mcd-keys-card {
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--night);
+  border: 1px solid var(--rule);
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+
+.mcd-key-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.mcd-key-row kbd {
+  font: 500 11px / 1.3 var(--mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink);
+}
+
+.mcd-details {
+  border-radius: var(--r-md);
+  background: var(--night);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.mcd-details summary {
+  padding: var(--s-3);
+  font: 600 var(--fs-sm) / 1.2 var(--body);
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mcd-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcd-details-body {
+  padding: 0 var(--s-3) var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.mcd-log {
+  margin: 0;
+  padding: var(--s-2);
+  height: 150px;
+  overflow: auto;
+  border-radius: var(--r-sm);
+  background: #080b1d;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font: 400 11px / 1.4 var(--mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---- PSP native save dialog (GoW CoO) ------------------------------------ */
+
+.saves {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(7 10 26 / 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: var(--s-4);
+}
+
+.saves[hidden] {
+  display: none !important;
+}
+
+.saves-panel {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-lg);
+  width: min(520px, 100%);
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.55);
+}
+
+.saves-title {
+  font: 700 18px / 1.2 var(--display);
+  padding: var(--s-4) var(--s-5) var(--s-2);
+  color: var(--ink);
+}
+
+.saves-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  overflow-y: auto;
+  flex: 1;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.slot {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--night);
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease;
+}
+
+.slot:hover {
+  background: var(--panel-2);
+}
+
+.slot.sel {
+  border-color: var(--action);
+  background: var(--action-bg);
+}
+
+.slot-icon {
+  width: 96px;
+  height: 54px;
+  flex: none;
+  border-radius: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--rule);
+  object-fit: cover;
+}
+
+.slot-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.slot-text b {
+  font: 600 var(--fs-sm) / 1.3 var(--display);
+  color: var(--ink);
+}
+
+.slot-text span {
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  white-space: pre-line;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.slot-text small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.saves-actions {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: flex-end;
+  padding: var(--s-3) var(--s-5) var(--s-2);
+  border-top: 1px solid var(--rule);
+}
+
+.saves-actions button {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  background: var(--panel-2);
+  color: var(--ink);
+  font: 600 var(--fs-sm) / 1 var(--body);
+  cursor: pointer;
+}
+
+.saves-actions button.primary {
+  background: var(--action);
+  border-color: var(--action);
+  color: #fff;
+}
+
+.saves-hint {
+  color: var(--muted);
+  font-size: 11px;
+  padding: 0 var(--s-5) var(--s-3);
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

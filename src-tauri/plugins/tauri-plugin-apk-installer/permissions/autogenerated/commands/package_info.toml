@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-package-info"
+description = "Enables the package_info command without any pre-configured scope."
+commands.allow = ["package_info"]
+
+[[permission]]
+identifier = "deny-package-info"
+description = "Denies the package_info command without any pre-configured scope."
+commands.deny = ["package_info"]

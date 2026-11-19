@@ -1,0 +1,58 @@
+[package]
+name = "memorycardcloud-launcher"
+version = "0.1.4"
+description = "A backup tool for game save folders"
+authors = ["Unrender"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "memorycardcloud_launcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+notify = "8.2.0"
+zip = "6.0.0"
+sha2 = "0.10.9"
+sysinfo = "0.37.2"
+reqwest = { version = "0.12.24", default-features = false, features = ["json", "multipart", "rustls-tls"] }
+tokio = { version = "1.48.0", features = ["full"] }
+serde_yaml = "0.9.34"
+walkdir = "2.5.0"
+dirs = "6.0.0"
+tauri-plugin-dialog = "2.4.2"
+tauri-plugin-deep-link = "2.4.5"
+thiserror = "1.0"
+flate2 = "1"
+tar = "0.4"
+lzma-rs = "0.3"
+sevenz-rust2 = "0.24"
+regex = "1"
+once_cell = "1"
+# Local plugin: AdMob (Google Mobile Ads) on Android, no-op elsewhere
+tauri-plugin-admob = { path = "plugins/tauri-plugin-admob" }
+tauri-plugin-apk-installer = { path = "plugins/tauri-plugin-apk-installer" }
+# Web ports que precisam de cross-origin isolation abrem numa Custom Tab no Android (o WebView não isola)
+tauri-plugin-web-tab = { path = "plugins/tauri-plugin-web-tab" }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+# só existe no desktop (no Android/iOS o sistema já garante uma instância)
+tauri-plugin-single-instance = "2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["shellapi", "winuser", "wingdi"] }
+image = "0.25"
+

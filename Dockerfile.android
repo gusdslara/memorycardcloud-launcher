@@ -1,0 +1,95 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 1. Install Basic Dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    file \
+    tar \
+    zip \
+    unzip \
+    git \
+    build-essential \
+    libssl-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev \
+    openjdk-17-jdk \
+    perl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Setup Environment Variables for Android SDK
+ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+ENV ANDROID_HOME="/opt/android-sdk"
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"
+ENV NDK_HOME="${ANDROID_HOME}/ndk/26.1.10909125"
+
+# 3. Install Android SDK Command Line Tools
+# Version: commandlinetools-linux-10406996_latest.zip (Use a fixed version or latest)
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
+    && curl -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
+    && unzip cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools \
+    && mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
+    && rm cmdline-tools.zip
+
+# 4. Accept Licenses and Install Components (Platforms, Build Tools, NDK)
+RUN yes | sdkmanager --licenses \
+    && sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125"
+
+# 5. Install Node.js (v20 LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# 6. Install Rust and Targets
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install Android Targets
+RUN rustup target add \
+    aarch64-linux-android \
+    armv7-linux-androideabi \
+    i686-linux-android \
+    x86_64-linux-android
+
+# 7. Build OpenSSL for Android (all targets)
+ENV OPENSSL_VERSION=3.3.1
+RUN cd /tmp \
+    && wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+    && tar xzf openssl-${OPENSSL_VERSION}.tar.gz \
+    && export ANDROID_NDK_ROOT=${NDK_HOME} \
+    && export PATH=${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH} \
+    && for pair in "android-arm64:aarch64-linux-android" "android-arm:armv7-linux-androideabi" "android-x86:i686-linux-android" "android-x86_64:x86_64-linux-android"; do \
+        openssl_target="${pair%%:*}"; \
+        android_target="${pair##*:}"; \
+        echo "Building OpenSSL for $openssl_target ($android_target)..."; \
+        cd openssl-${OPENSSL_VERSION}; \
+        make distclean || true; \
+        ./Configure $openssl_target -D__ANDROID_API__=24 --prefix=/opt/openssl/$android_target || exit 1; \
+        make -j$(nproc) || exit 1; \
+        make install_sw || exit 1; \
+        cd ..; \
+    done \
+    && rm -rf openssl-${OPENSSL_VERSION}*
+
+# Set environment variables for openssl-sys (for all targets)
+ENV AARCH64_LINUX_ANDROID_OPENSSL_DIR=/opt/openssl/aarch64-linux-android
+ENV AARCH64_LINUX_ANDROID_OPENSSL_NO_PKG_CONFIG=1
+
+ENV ARMV7_LINUX_ANDROIDEABI_OPENSSL_DIR=/opt/openssl/armv7-linux-androideabi
+ENV ARMV7_LINUX_ANDROIDEABI_OPENSSL_NO_PKG_CONFIG=1
+
+ENV I686_LINUX_ANDROID_OPENSSL_DIR=/opt/openssl/i686-linux-android
+ENV I686_LINUX_ANDROID_OPENSSL_NO_PKG_CONFIG=1
+
+ENV X86_64_LINUX_ANDROID_OPENSSL_DIR=/opt/openssl/x86_64-linux-android
+ENV X86_64_LINUX_ANDROID_OPENSSL_NO_PKG_CONFIG=1
+
+# 8. Setup Work Directory
+WORKDIR /app
+
+# Pre-install Cargo utilities if needed (optional, speeds up initial build)
+# RUN cargo install tauri-cli --version ^2.0.0 || true
+
+CMD ["bash"]

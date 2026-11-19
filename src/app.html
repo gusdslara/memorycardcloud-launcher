@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1330" />
+    <title>MemoryCard.cloud</title>
+    <script>
+      // Celular/tablet: sem barra de janela do desktop (minimizar/maximizar/fechar)
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) document.documentElement.classList.add("mobile-os");
+    </script>
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

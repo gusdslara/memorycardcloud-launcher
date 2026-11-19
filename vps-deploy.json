@@ -1,0 +1,39 @@
+{
+  "$comment": "Deploy na VPS com o vps-deployer: deployer deploy compose <esta pasta>. Sobe API + landing, publica os domínios no Caddy e dispara o build do app (Windows, Linux, Android) em segundo plano.",
+  "name": "memorycard",
+  "compose_file": "docker-compose.vps.yml",
+  "env_file": "deploy/vps.env",
+  "env_example": "deploy/vps.env.example",
+  "sync": {
+    "clean": true,
+    "keep": [".deploy-cache", ".deploy-logs", ".deploy-secrets", "src-tauri/gen/schemas", "src-tauri/gen/android/app/tauri.properties"]
+  },
+  "files": [
+    { "local": "src-tauri/.updater/memorycard-updater.key", "remote": ".deploy-secrets/memorycard-updater.key", "mode": "600", "optional": true },
+    { "local": "src-tauri/.android/keystore.properties", "remote": ".deploy-secrets/android/keystore.properties", "mode": "600", "optional": true },
+    { "local": "src-tauri/.android/memorycard-release.jks", "remote": ".deploy-secrets/android/memorycard-release.jks", "mode": "600", "optional": true }
+  ],
+  "preflight": ["bash deploy/vps-preflight.sh"],
+  "services": ["api"],
+  "healthcheck": {
+    "cmd": "docker exec memorycard-api wget -qO- http://127.0.0.1:8000/api/health && docker exec memorycard-api wget -qO- http://127.0.0.1:8000/ | grep -q '<html'",
+    "retries": 45,
+    "interval": 2
+  },
+  "domains": [
+    { "domain": "memorycard.cloud", "proxy": "memorycard-api:8000" },
+    { "domain": "www.memorycard.cloud", "proxy": "memorycard-api:8000" },
+    { "domain": "memorycard.digital", "proxy": "memorycard-api:8000" },
+    { "domain": "www.memorycard.digital", "proxy": "memorycard-api:8000" },
+    { "domain": "api.memorycard.cloud", "proxy": "memorycard-api:8000" },
+    { "domain": "api.memorycard.digital", "proxy": "memorycard-api:8000" }
+  ],
+  "post_deploy": [
+    {
+      "name": "apps",
+      "description": "Build do app para Windows, Linux e Android (macOS/iOS: num Mac) e publicação em /baixar",
+      "run": "export HOST_UID=$(id -u) HOST_GID=$(id -g); docker compose -p memorycard -f docker-compose.vps.yml --profile apps build app-builder && docker compose -p memorycard -f docker-compose.vps.yml --profile apps run --rm -T --no-deps app-builder",
+      "background": true
+    }
+  ]
+}

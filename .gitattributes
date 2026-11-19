@@ -1,0 +1,6 @@
+# Scripts que rodam na VPS/containers Linux precisam de LF mesmo vindo do Windows
+*.sh text eol=lf
+gradlew text eol=lf
+deploy/* text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore text eol=lf

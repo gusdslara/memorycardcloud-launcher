@@ -1,0 +1,55 @@
+# Usado pelo `docker build` (imagem do servidor) e pelo vps-deployer no envio do projeto:
+# o que estiver aqui não sobe para a VPS e fica preservado lá entre um deploy e outro.
+**/node_modules
+**/.svelte-kit
+build
+landing/build
+.git
+.vscode
+.idea
+
+# Builds e caches locais (no servidor o builder tem os dele)
+src-tauri/target
+src-tauri/gen/android/.gradle
+src-tauri/gen/android/app/build
+src-tauri/gen/android/buildSrc/build
+src-tauri/gen/android/buildSrc/.gradle
+src-tauri/gen/android/app/src/main/jniLibs
+src-tauri/gen/android/**/local.properties
+src-tauri/gen/apple/build
+recomps
+
+# Dados locais do backend (os de produção ficam fora do projeto, em MEMORYCARD_HOME)
+go-backend/go-backend.exe
+go-backend/data
+go-backend/uploads
+go-backend/tmp
+go-backend/filebrowser.db
+go-backend/filebrowser_data
+go-backend/.env
+
+# Segredos e estado da VPS (enviados à parte pelo vps-deploy.json, com chmod 600)
+src-tauri/.updater/*.key
+src-tauri/.android
+.deploy-secrets
+.deploy-cache
+.deploy-logs
+deploy/vps.env
+.env
+.env.*
+
+# Lixo que não faz parte do app
+# (arquivos de outro jogo que foram parar em src-tauri; license*.txt e Cargo.lock continuam)
+src-tauri/*.package
+src-tauri/*.ini
+src-tauri/Config.log
+src-tauri/ConnectionStatus.txt
+src-tauri/GPU Benchmark Results.txt
+src-tauri/GPU Score Results.txt
+src-tauri/GameVersion.txt
+src-tauri/UserData.lock
+src-tauri/ReticulatedSplinesView
+src-tauri/cachestr
+src-tauri/onlinethumbnailcache
+src-tauri/Mods
+src-tauri/content

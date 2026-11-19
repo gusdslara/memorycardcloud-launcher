@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "MemoryCard.cloud",
+    "version": "0.1.4",
+    "identifier": "cloud.memorycard.launcher",
+    "plugins": {
+        "deep-link": {
+            "verbose": true,
+            "desktop": {
+                "schemes": [
+                    "memorycard"
+                ]
+            },
+            "mobile": [
+                {
+                    "scheme": [
+                        "memorycard"
+                    ],
+                    "appLink": false
+                }
+            ]
+        },
+        "updater": {
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDA1N0I3Q0Q3OTMzNTRGM0IKUldRN1R6V1QxM3g3QmJNQjlyTTd4ZFNnRUUwNUpld3dBbWJkc2tYdFhsTE5hV3ZxYnpDcU9mVE4K",
+            "endpoints": [
+                "https://memorycard.cloud/api/app/update/{{target}}/{{arch}}/{{current_version}}",
+                "https://api.memorycard.cloud/api/app/update/{{target}}/{{arch}}/{{current_version}}",
+                "https://memorycard.cloud/api/app/update/{{target}}/{{arch}}/{{current_version}}"
+            ],
+            "windows": {
+                "installMode": "passive"
+            }
+        }
+    },
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "devUrl": "http://localhost:1420",
+        "beforeBuildCommand": "npm run build",
+        "frontendDist": "../build"
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "MemoryCard.cloud",
+                "width": 800,
+                "height": 600,
+                "decorations": false,
+                "shadow": true
+            }
+        ],
+        "security": {
+            "csp": null,
+            "assetProtocol": {
+                "enable": true,
+                "scope": [
+                    "**"
+                ]
+            }
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": [
+            "nsis",
+            "msi"
+        ],
+        "publisher": "Unrender",
+        "shortDescription": "Your digital memory card for game saves and cloud sync.",
+        "copyright": "Copyright © 2024 Unrender. All rights reserved.",
+        "licenseFile": "license.txt",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "resources": [],
+        "externalBin": [],
+        "windows": {
+            "nsis": {
+                "installMode": "perMachine",
+                "installerIcon": "icons/icon.ico",
+                "displayLanguageSelector": true,
+                "languages": [
+                    "English",
+                    "PortugueseBR",
+                    "Spanish",
+                    "French",
+                    "German",
+                    "Italian",
+                    "Japanese",
+                    "Korean",
+                    "SimpChinese",
+                    "Russian"
+                ]
+            },
+            "wix": {
+                "language": [
+                    "en-US",
+                    "pt-BR"
+                ]
+            }
+        },
+        "linux": {},
+        "macOS": {},
+        "createUpdaterArtifacts": true
+    }
+}

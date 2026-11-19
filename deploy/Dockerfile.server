@@ -1,0 +1,59 @@
+# Servidor de produção do MemoryCard.cloud: API Go + landing page (mesma origem, /api).
+#
+#   docker build -f deploy/Dockerfile.server -t memorycard-server .
+#
+# Etapa 1 gera o catálogo (src/lib/data → catalog.json) e a landing estática.
+# Etapa 2 compila a API com esse catálogo embutido.
+# Etapa 3 junta os dois: a API serve a landing (LANDING_DIR) e tudo em /api.
+
+# ---------------------------------------------------------------- 1. site + catálogo
+FROM node:22-bookworm-slim AS site
+WORKDIR /src
+ENV npm_config_update_notifier=false
+
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY landing/package.json landing/package-lock.json landing/
+RUN npm --prefix landing ci --no-audit --no-fund
+
+COPY src ./src
+COPY static ./static
+COPY scripts ./scripts
+COPY landing ./landing
+COPY go-backend/internal/catalog/catalog.json ./go-backend/internal/catalog/catalog.json
+
+# Variáveis VITE_* opcionais (padrão: API na mesma origem, /api)
+ARG VITE_API_URL=
+ARG VITE_APP_WINDOWS_URL=
+ARG VITE_APP_LINUX_URL=
+ARG VITE_APP_MACOS_URL=
+ARG VITE_APP_ANDROID_URL=
+ARG VITE_APP_IOS_URL=
+RUN npm run export:catalog && npm --prefix landing run build
+
+# ---------------------------------------------------------------- 2. API Go
+FROM golang:1.24-alpine AS api
+WORKDIR /app
+RUN apk add --no-cache git
+COPY go-backend/go.mod go-backend/go.sum ./
+RUN go mod download
+COPY go-backend/ ./
+# catálogo recém-exportado (o mesmo que o app e a landing usam)
+COPY --from=site /src/go-backend/internal/catalog/catalog.json ./internal/catalog/catalog.json
+RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" -o /out/memorycard-api .
+
+# ---------------------------------------------------------------- 3. imagem final
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates tzdata wget
+WORKDIR /app
+COPY --from=api /out/memorycard-api ./memorycard-api
+COPY --from=site /src/landing/build ./landing
+RUN mkdir -p /app/uploads /data
+ENV PORT=8000 \
+    LANDING_DIR=/app/landing \
+    DATA_DIR=/data \
+    MODE=production
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8000/api/health >/dev/null || exit 1
+CMD ["./memorycard-api"]

@@ -1,0 +1,169 @@
+/*
+ * Grade de capas e linhas compactas compartilhadas pelas abas Jogos (PortsView) e Web Ports (WebPortsView).
+ * Global de propósito: as duas telas usam o mesmo markup (.tile / .tile-cover / .tile-action / .tile-meta).
+ */
+
+/* Grade de capas: 3 por linha num celular de 360px, mais colunas conforme a largura */
+.ports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px 10px;
+}
+@media (min-width: 640px) {
+  .ports-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px 14px;
+  }
+}
+.tile {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.tile-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+  background: var(--panel);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.tile-cover:hover {
+  border-color: var(--rule-strong);
+  transform: translateY(-2px);
+}
+.tile-cover:focus-visible,
+.tile-action:focus-visible,
+.row-main:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.tile-status {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--night);
+}
+/* Ação no canto superior direito da capa: alvo de toque 44px, ícone 18px */
+.tile-action {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.tile-action::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  background: var(--action);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.tile-action.is-play::before {
+  background: var(--success);
+}
+.tile-action svg {
+  position: relative;
+}
+.tile-action:hover::before {
+  background: var(--action-hover);
+  transform: scale(1.06);
+}
+.tile-action:active::before {
+  transform: scale(0.94);
+}
+.tile-meta {
+  display: grid;
+  gap: 1px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+/* Nada cortado com "…": título e linhas de apoio quebram em quantas linhas precisarem */
+.tile-title {
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.tile-sub {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+/* Nota dos jogadores no card: ícone + "4,3 de 5 · 88% roda bem · 62 aparelhos"; a cor segue o "roda bem" */
+.tile-rating {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.tile-rating > svg {
+  flex: none;
+  margin-top: 1px;
+}
+.tile-rating[data-tone="good"] {
+  color: var(--success-ink);
+}
+.tile-rating[data-tone="mixed"] {
+  color: var(--warn-ink);
+}
+.tile-rating[data-tone="bad"] {
+  color: var(--danger-ink);
+}
+.row-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 6px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius, 8px);
+  background: var(--panel);
+}
+.row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-cover,
+  .tile-action::before {
+    transition: none;
+  }
+  .tile-cover:hover {
+    transform: none;
+  }
+}
