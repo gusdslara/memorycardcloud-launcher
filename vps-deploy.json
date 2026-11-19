@@ -21,8 +21,8 @@
     "interval": 2
   },
   "domains": [
-    { "domain": "memorycard.cloud", "proxy": "memorycard-api:8000" },
-    { "domain": "www.memorycard.cloud", "proxy": "memorycard-api:8000" },
+    { "domain": "memorycard.cloud", "proxy": "memorycard-api:8000", "skip": true, "note": "bloco manual no Caddyfile: site estático do memorycardcloud-fe-be (/var/www/memorycard.cloud) + /api/* para a API" },
+    { "domain": "www.memorycard.cloud", "proxy": "memorycard-api:8000", "skip": true, "note": "mesmo bloco de memorycard.cloud" },
     { "domain": "memorycard.digital", "proxy": "memorycard-api:8000" },
     { "domain": "www.memorycard.digital", "proxy": "memorycard-api:8000" },
     { "domain": "api.memorycard.cloud", "proxy": "memorycard-api:8000" },
