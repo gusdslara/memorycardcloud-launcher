@@ -10,13 +10,11 @@ landing/build
 
 # Builds e caches locais (no servidor o builder tem os dele)
 src-tauri/target
-src-tauri/gen/android/.gradle
-src-tauri/gen/android/app/build
-src-tauri/gen/android/buildSrc/build
-src-tauri/gen/android/buildSrc/.gradle
-src-tauri/gen/android/app/src/main/jniLibs
-src-tauri/gen/android/**/local.properties
-src-tauri/gen/apple/build
+# Projetos Android/iOS gerados (tauri android init): o servidor gera os dele. Os gerados no PC têm caminhos
+# absolutos da máquina (tauri.settings.gradle → C:\Users\...) e quebravam o build do APK na VPS.
+# As personalizações (assinatura, AdMob) vêm de deploy/android-signing.mjs, aplicado depois do init.
+src-tauri/gen/android
+src-tauri/gen/apple
 recomps
 
 # Dados locais do backend (os de produção ficam fora do projeto, em MEMORYCARD_HOME)
